@@ -1,0 +1,489 @@
+Problem stmt 1 : StudentDB
+
+CREATE DATABASE StudentDB;
+USE StudentDB;
+
+CREATE TABLE Department (
+    dept_id INT PRIMARY KEY,
+    DeptName VARCHAR(50) UNIQUE,
+    HOD_Name VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE Student (
+    RegID INT PRIMARY KEY,
+    rollno INT UNIQUE,
+    fname VARCHAR(50) NOT NULL,
+    mname VARCHAR(50),
+    lname VARCHAR(50),
+    gender CHAR(1) CHECK (gender IN ('M','F')),
+    dept_id INT,
+    FOREIGN KEY (dept_id) REFERENCES Department(dept_id)
+);
+
+CREATE TABLE Course (
+    CID INT PRIMARY KEY,
+    course_name VARCHAR(80) NOT NULL,
+    credit INT CHECK (credit > 0)
+);
+
+CREATE TABLE Enrolment (
+    enid INT PRIMARY KEY,
+    RegID INT,
+    DeptID INT,
+    FOREIGN KEY (RegID) REFERENCES Student(RegID),
+    FOREIGN KEY (DeptID) REFERENCES Department(dept_id)
+);
+
+ALTER TABLE Student ADD email VARCHAR(80) UNIQUE;
+ALTER TABLE Course MODIFY course_name VARCHAR(120);
+ALTER TABLE Enrolment RENAME TO StudentEnrollment;
+ALTER TABLE Course CHANGE CID course_no INT;
+CREATE INDEX idx_dept_id ON Student(dept_id);
+
+====================================================================================================
+
+Problem stmt 2 : BankDB 
+
+mysql> Create database BankDB;
+Query OK, 1 row affected (0.093 sec)
+
+mysql> use BankDB;
+Database changed
+mysql> Create table Bank(bank_id int Primary key,bank_name varchar(50) not null,address varchar(100),contactno int unique);
+Query OK, 0 rows affected (0.429 sec)
+
+mysql> create table Branch(branch_id int Primary key,branch_name varchar(50) not null,ifsc int unique,city varchar(50),state varchar(50) not null,pincode int not null);
+Query OK, 0 rows affected (0.320 sec)
+
+mysql> alter table Branch add column bank_id int,add constraint foreign key(bank_id) references Bank(bank_id);
+Query OK, 0 rows affected (0.658 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> create table Customer(customerid int Primary key,fname varchar(50),mname varchar(50),lname varchar(50),gender varchar(1) check (gender = ('M' or 'F')),dob Date not null,phone int not null unique);
+Query OK, 0 rows affected (0.406 sec)
+
+mysql> create table Account(account_id int primary key,customer_id int,branch_id int,account_no int not null Unique,account_type varchar(20),balance float not null,status varchar(20),open_on date not null,Foreign key(customer_id) references Customer(customerid),foreign key(branch_id) References Branch(branch_id));
+Query OK, 0 rows affected (0.692 sec)
+
+mysql> alter table Customer add column email varchar(120) unique;
+Query OK, 0 rows affected (0.663 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> alter table Branch modify branch_name varchar(120);
+Query OK, 0 rows affected (0.659 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> Rename table Account to CustomerAccount;
+Query OK, 0 rows affected (0.222 sec)
+
+mysql> alter table Branch rename column ifsc to ifsc_code;
+Query OK, 0 rows affected (0.185 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> create index idx on CustomerAccount(branch_id);
+Query OK, 0 rows affected (0.196 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+===================================================================================================
+
+Problem stmt 3 : Cust-Acc-Transact
+
+mysql> create database Bnk;
+Query OK, 1 row affected (0.096 sec)
+
+mysql> use Bnk;
+Database changed
+mysql> create table Customer(CustomerID int Primary key,Name varchar(50) not null,Address varchar(100) not null,Phone int unique,Email varchar(120) not null unique);
+Query OK, 0 rows affected (0.508 sec)
+
+mysql> create table Account(AccountID int Primary key,CustomerID int,AccountType varchar(20) check (AccountType in ('Savings' or 'Current' or 'Business')),Balance float not null,CreatedDate Date);
+Query OK, 0 rows affected (0.166 sec)
+
+mysql> alter table Account add constraint Foreign key(CustomerID) references Customer(CustomerID);
+Query OK, 0 rows affected (0.646 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> create table Transaction(TransactionID int Primary key,AccountID int,Foreign key(AccountID) References Account(AccountID),TransactionType varchar(20) check (TransactionType in ('Bank Transfer' or 'UPI' or 'IMPS')),Amount int not null,TransactionDate Date);
+Query OK, 0 rows affected (0.388 sec)
+
+mysql> create index idx on Transaction(TransactionDate);
+Query OK, 0 rows affected (0.170 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> alter table Account add constraint check (Balance >= 0);
+Query OK, 0 rows affected (0.645 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> alter table Transaction drop column TransactionType;
+Query OK, 0 rows affected (0.620 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> alter table Transaction add column TransactionType varchar(20) check (TransactionType in ('Credit','Debit'));
+Query OK, 0 rows affected (0.682 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+===================================================================================================
+
+Problem stmt 4 : Library Management System
+
+CREATE DATABASE Library;
+USE Library;
+
+CREATE TABLE Books (
+    b_id BIGINT PRIMARY KEY,
+    isbn BIGINT,
+    title VARCHAR(100),
+    author VARCHAR(50),
+    genre VARCHAR(30),
+    copies INT
+);
+
+CREATE TABLE Members (
+    m_id BIGINT PRIMARY KEY,
+    m_name VARCHAR(100),
+    email VARCHAR(100),
+    phone VARCHAR(15),
+    join_date DATE
+);
+
+CREATE TABLE IssuedBooks (
+    issue_id BIGINT PRIMARY KEY,
+    m_id BIGINT,
+    b_id BIGINT,
+    issue_date DATE,
+    due_date DATE,
+    return_date DATE,
+    FOREIGN KEY (m_id) REFERENCES Members(m_id),
+    FOREIGN KEY (b_id) REFERENCES Books(b_id)
+);
+
+-- Queries
+SELECT m_name, title FROM Members
+INNER JOIN IssuedBooks USING(m_id)
+INNER JOIN Books USING(b_id);
+
+SELECT m_name, title FROM Members
+LEFT JOIN IssuedBooks USING(m_id)
+LEFT JOIN Books USING(b_id);
+
+SELECT title, m_name FROM Members
+RIGHT JOIN IssuedBooks USING(m_id)
+RIGHT JOIN Books USING(b_id);
+
+SELECT m_name FROM Members
+WHERE m_id IN (
+  SELECT m_id FROM IssuedBooks
+  WHERE b_id IN (SELECT b_id FROM Books WHERE author LIKE '%Navathe%')
+);
+
+SELECT m_name,
+  (SELECT COUNT(*) FROM IssuedBooks WHERE IssuedBooks.m_id = Members.m_id)
+  AS total_books_issued
+FROM Members;
+
+====================================================================================================
+
+Prtoblem stmt 5 : Sales Management System
+
+CREATE DATABASE SalesDB;
+USE SalesDB;
+
+CREATE TABLE Customer (
+    customer_id INT PRIMARY KEY,
+    customer_name VARCHAR(100),
+    city VARCHAR(50),
+    email VARCHAR(100)
+);
+
+CREATE TABLE Product (
+    product_id INT PRIMARY KEY,
+    product_name VARCHAR(100),
+    category VARCHAR(50),
+    price DECIMAL(10,2)
+);
+
+CREATE TABLE Sale (
+    sale_id INT PRIMARY KEY,
+    customer_id INT,
+    product_id INT,
+    quantity INT,
+    sale_date DATE,
+    total_amount DECIMAL(10,2),
+    FOREIGN KEY (customer_id) REFERENCES Customer(customer_id),
+    FOREIGN KEY (product_id) REFERENCES Product(product_id)
+);
+
+-- Aggregation
+SELECT customer_id, SUM(total_amount) AS total_sales FROM Sale GROUP BY customer_id;
+SELECT product_id, SUM(quantity) AS total_qty FROM Sale GROUP BY product_id;
+SELECT MAX(price) AS highest, MIN(price) AS lowest FROM Product;
+SELECT city, AVG(total_amount) FROM Sale s JOIN Customer c USING(customer_id) GROUP BY city;
+SELECT p.category, SUM(s.total_amount), COUNT(s.sale_id)
+FROM Product p JOIN Sale s USING(product_id) GROUP BY p.category;
+
+-- Subqueries
+SELECT * FROM Customer WHERE customer_id IN (
+  SELECT customer_id FROM Sale
+  GROUP BY customer_id
+  HAVING SUM(total_amount) > (SELECT AVG(total_amount) FROM Sale)
+);
+
+CREATE TEMPORARY TABLE Summary AS
+SELECT customer_id, SUM(total_amount) AS total_sales FROM Sale GROUP BY customer_id;
+SELECT * FROM Summary WHERE total_sales > 10000;
+
+SELECT p.product_name, COUNT(s.sale_id) FROM Product p
+LEFT JOIN Sale s USING(product_id)
+GROUP BY p.product_id;
+
+SELECT DISTINCT customer_id FROM Sale s
+JOIN Product p USING(product_id)
+WHERE p.category = 'Electronics';
+
+====================================================================================================
+
+Problem stmt 6 : Pl/SQL Borrower
+
+
+DECLARE
+    v_roll Borrower.Roll_no%TYPE := &Roll_no;
+    v_book Borrower.NameofBook%TYPE := '&Book';
+    v_days NUMBER;
+    v_fine NUMBER;
+BEGIN
+    SELECT SYSDATE - DateofIssue INTO v_days FROM Borrower
+    WHERE Roll_no = v_roll AND NameofBook = v_book;
+
+    IF v_days BETWEEN 15 AND 30 THEN
+        v_fine := v_days * 5;
+    ELSIF v_days > 30 THEN
+        v_fine := v_days * 50;
+    ELSE
+        v_fine := 0;
+    END IF;
+
+    UPDATE Borrower SET Status='R' WHERE Roll_no=v_roll AND NameofBook=v_book;
+
+    IF v_fine > 0 THEN
+        INSERT INTO Fine VALUES (v_roll, SYSDATE, v_fine);
+    END IF;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Invalid Roll No or Book Name');
+END;
+
+====================================================================================================
+
+Problem stmt 7 : Stored Procedure
+
+CREATE OR REPLACE PROCEDURE proc_Grade(p_name VARCHAR2, p_marks NUMBER) AS
+    v_class VARCHAR2(30);
+BEGIN
+    IF p_marks BETWEEN 990 AND 1500 THEN
+        v_class := 'Distinction';
+    ELSIF p_marks BETWEEN 900 AND 989 THEN
+        v_class := 'First Class';
+    ELSIF p_marks BETWEEN 825 AND 899 THEN
+        v_class := 'Higher Second Class';
+    ELSE
+        v_class := 'Fail';
+    END IF;
+
+    INSERT INTO Result(Name, Class) VALUES(p_name, v_class);
+END;
+/
+
+-- Execution Block
+DECLARE
+    v_name VARCHAR2(30) := '&Name';
+    v_marks NUMBER := &Marks;
+BEGIN
+    proc_Grade(v_name, v_marks);
+END;
+/
+
+===================================================================================================
+
+Problem stmt 8 : Cursors
+
+-- Explicit cursor
+DECLARE
+    CURSOR c1 IS SELECT name, total_mark FROM Student_Result;
+    v_name Student_Result.name%TYPE;
+    v_mark Student_Result.total_mark%TYPE;
+BEGIN
+    OPEN c1;
+    LOOP
+        FETCH c1 INTO v_name, v_mark;
+        EXIT WHEN c1%NOTFOUND;
+        DBMS_OUTPUT.PUT_LINE(v_name || ' - ' || v_mark);
+    END LOOP;
+    CLOSE c1;
+END;
+/
+
+-- Parameterized Cursor
+DECLARE
+    CURSOR c2(dept_name VARCHAR2) IS
+        SELECT name FROM Student_Result WHERE dept = dept_name;
+BEGIN
+    FOR rec IN c2('Computer') LOOP
+        DBMS_OUTPUT.PUT_LINE(rec.name);
+    END LOOP;
+END;
+/
+
+====================================================================================================
+
+Problem stmt 9 : Triggers
+
+
+CREATE DATABASE LibraryDB;
+USE LibraryDB;
+
+CREATE TABLE Books (
+    AccNo INT PRIMARY KEY,
+    Title VARCHAR(100),
+    Author VARCHAR(100),
+    Publisher VARCHAR(100),
+    Count INT
+);
+
+CREATE TABLE Library_Audit (
+    AccNo INT,
+    Title VARCHAR(100),
+    Author VARCHAR(100),
+    Publisher VARCHAR(100),
+    Count INT,
+    action_date DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+DELIMITER //
+
+CREATE TRIGGER before_delete_books
+BEFORE DELETE ON Books
+FOR EACH ROW
+BEGIN
+    INSERT INTO Library_Audit VALUES (OLD.AccNo, OLD.Title, OLD.Author, OLD.Publisher, OLD.Count, NOW());
+END;
+//
+
+CREATE TRIGGER after_update_books
+AFTER UPDATE ON Books
+FOR EACH ROW
+BEGIN
+    INSERT INTO Library_Audit VALUES (NEW.AccNo, NEW.Title, NEW.Author, NEW.Publisher, NEW.Count, NOW());
+END;
+//
+
+DELIMITER ;
+
+====================================================================================================
+
+Problem stmt 10 : JDBC connectivity (Eclipse)
+
+import java.sql.*;
+class DBConnect {
+    public static void main(String[] args) {
+        try {
+            Connection con = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/LibraryDB", "root", "password");
+            Statement st = con.createStatement();
+
+            // Insert record
+            st.executeUpdate("INSERT INTO Books VALUES (1, 'DBMS', 'Silberschatz', 'McGraw', 5)");
+
+            // Fetch records
+            ResultSet rs = st.executeQuery("SELECT * FROM Books");
+            while(rs.next())
+                System.out.println(rs.getInt(1)+" "+rs.getString(2));
+
+            con.close();
+        } catch(Exception e) {
+            System.out.println(e);
+        }
+    }
+}
+
+====================================================================================================
+
+Problem stmt 11 : MongoDB CRUD 
+
+use library;
+
+db.books.insertMany([
+ {TITLE:"mongodb", DESCRIPTION:"intro", BY:"john", URL:"abc.com", TAGS:["db","nosql"], LIKES:50},
+ {TITLE:"nosql overview", DESCRIPTION:"concepts", BY:"alex", URL:"xyz.com", TAGS:["nosql"], LIKES:10},
+ {TITLE:"mongodb basics", DESCRIPTION:"learn", BY:"john", URL:"abc.com", TAGS:["db"], LIKES:100}
+]);
+
+db.books.insertOne({
+  TITLE:"mongodb", DESCRIPTION:"details", BY:"john", URL:"mongo.com",
+  TAGS:["db"], LIKES:120, username:"admin", comments:"useful"
+});
+
+db.books.find({TITLE:"mongodb"});
+db.books.find({$or:[{BY:"john"},{TITLE:"mongodb"}]});
+db.books.find({$and:[{TITLE:"mongodb"},{BY:"john"}]});
+db.books.find({LIKES:{$gt:10}});
+db.books.find({$and:[{LIKES:{$gt:100}},{$or:[{TITLE:"mongodb"},{BY:"john"}]}]});
+db.books.updateOne({TITLE:"mongodb"},{$set:{TITLE:"mongodb overview"}});
+db.books.deleteOne({TITLE:"nosql overview"});
+db.books.find({BY:"john"}).limit(2);
+db.books.find({BY:"john"}).skip(1).limit(1);
+db.books.find().sort({TITLE:1});
+
+====================================================================================================
+
+Problem stmt 12 : MongoDB Aggregate & Index
+
+
+db.books.aggregate([
+  {$match:{BY:"john"}},
+  {$group:{_id:"$BY", count:{$sum:1}}}
+]);
+
+db.books.aggregate([
+  {$match:{BY:"john"}},
+  {$group:{_id:null, minLikes:{$min:"$LIKES"}, maxLikes:{$max:"$LIKES"}}}
+]);
+
+db.books.aggregate([
+  {$match:{BY:"john"}},
+  {$group:{_id:null, avgLikes:{$avg:"$LIKES"}}}
+]);
+
+db.books.aggregate([
+  {$match:{BY:"john"}},
+  {$group:{_id:null, firstBook:{$first:"$TITLE"}, lastBook:{$last:"$TITLE"}}}
+]);
+
+db.books.createIndex({BY:1});
+db.books.find({BY:"john"}).explain("executionStats");
+
+====================================================================================================
+
+Problem stmt 13 : MongoDB MapReduce
+
+var mapFunc = function() {
+    if (this.status == 'P') emit(this.cus_id, this.amount);
+};
+
+var reduceFunc = function(key, values) {
+    return Array.sum(values);
+};
+
+db.order.mapReduce(mapFunc, reduceFunc, {out:"sum_per_customer"});
+
+var avgFunc = function(key, values) {return Array.avg(values);};
+db.order.mapReduce(function(){emit(this.cus_id,this.amount);}, avgFunc, {out:"avg_per_customer"});
+
+var minFunc = function(key, values){return Math.min.apply(Math, values);};
+db.order.mapReduce(function(){emit(this.cus_id,this.amount);}, minFunc, {out:"min_per_customer"});
+
+var maxFunc = function(key, values){return Math.max.apply(Math, values);};
+db.order.mapReduce(function(){
+    if(this.status=='F') emit(this.cus_id,this.amount);
+}, maxFunc, {out:"max_per_customer"});
+
